@@ -5,6 +5,7 @@ from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 from sklearn.impute import KNNImputer
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -426,6 +427,61 @@ df_capped_num= df_capped.drop(["BGGId", "Name" , "Description", "Family", "Ratin
 M_Cor = df_capped_num.corr()
 sns.heatmap(M_Cor)
 
+#Variabili con alta correlazione: (Gameweight, MfgPLaytime, comeagerec, comminplaytime); (NumOwned, NumWeightVotes, NumWant, NumWIsh, NumUserRating)
+#(NUmReimplementation, isReimplementation); (ongi categotia ed il corrispettivo ranking)
+#Ci si fa un grafico I guess? Sicuramente si può fare un discorso ganzo nel report
+
+
+# -----------------------------------------------
+# -----------------------------------------------
+# VISUALIZZAZIONE EFFETTO SCALATURE
+
+print("\n---- VISUALIZZAZIONE SCALATURE ----")
+
+# Dati di partenza (gli stessi usati per Isolation Forest e Correlazione)
+# df_corretto è il dataframe dopo l'imputazione e la trasformazione per la skewness
+# numeriche è la lista delle colonne numeriche su cui lavorare
+X_originale = df_corretto[numeriche].values
+
+# Dati standardizzati (li hai già calcolati per Isolation Forest)
+# scaler = StandardScaler()
+# X_scaled = scaler.fit_transform(df_corretto[numeriche])
+
+# Dati normalizzati (Min-Max Scaling)
+minmax_scaler = MinMaxScaler()
+X_minmax = minmax_scaler.fit_transform(df_corretto[numeriche])
+
+# Scegliamo una colonna da visualizzare.
+# Troviamo l'indice della colonna 'NumOwned' nella nostra lista 'numeriche'
+try:
+    colonna_da_visualizzare = 'NumOwned'
+    # .get_loc() ci dà la posizione numerica del nome della colonna
+    i = numeriche.get_loc(colonna_da_visualizzare)
+    print(f"Visualizzo la colonna '{colonna_da_visualizzare}' all'indice {i}")
+
+    # Creiamo la figura con 3 grafici
+    fig, axs = plt.subplots(1, 3, figsize=(18, 5))
+
+    # 1. Grafico dati originali (ma già trasformati per la skewness)
+    sns.histplot(X_originale[:, i], ax=axs[0], kde=True)
+    axs[0].set_title(f'Originale (Trasformato)\n{colonna_da_visualizzare}')
+    axs[0].set_xlabel('Valori')
+
+    # 2. Grafico dati standardizzati (Z-score)
+    sns.histplot(X_scaled[:, i], ax=axs[1], kde=True)
+    axs[1].set_title(f'Standardizzato (Z-score)\n{colonna_da_visualizzare}')
+    axs[1].set_xlabel('Valori Standardizzati')
+
+    # 3. Grafico dati normalizzati (Min-Max)
+    sns.histplot(X_minmax[:, i], ax=axs[2], kde=True)
+    axs[2].set_title(f'Normalizzato (Min-Max)\n{colonna_da_visualizzare}')
+    axs[2].set_xlabel('Valori Normalizzati')
+
+    plt.tight_layout()
+    plt.show()
+
+except KeyError:
+    print(f"Errore: La colonna '{colonna_da_visualizzare}' non è presente nelle colonne numeriche selezionate.")
 #Variabili con alta correlazione: (Gameweight, MfgPLaytime, comeagerec, comminplaytime); (NumOwned, NumWeightVotes, NumWant, NumWIsh, NumUserRating)
 #(NUmReimplementation, isReimplementation); (ongi categotia ed il corrispettivo ranking)
 #Ci si fa un grafico I guess? Sicuramente si può fare un discorso ganzo nel report
